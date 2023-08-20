@@ -7,7 +7,13 @@ function Main() {
     param (
         [Parameter(Position = 0)]
         [ValidateSet('CLI', 'GUI')]
-        [String] $Mode = 'GUI'
+        [String] $Mode = 'GUI',
+
+        [Parameter()]
+        [switch] $NoDialog,
+
+        [Parameter()]
+        [switch] $NoRestart
     )
 
     Begin {
@@ -53,7 +59,7 @@ function Main() {
         } Else { Write-Caption "Arguments: None, running GUI" }
 
         If ($Mode -eq 'CLI') {
-            Open-DebloatScript -Mode $Mode
+            Open-DebloatScript -Mode $Mode -NoDialog:$NoDialog -NoRestart:$NoRestart
         } Else { Show-GUI }
     }
 
@@ -71,7 +77,13 @@ function Open-DebloatScript {
     param(
         [Parameter(Position = 0)]
         [ValidateSet('CLI', 'GUI')]
-        [String] $Mode = 'GUI'
+        [String] $Mode = 'GUI',
+
+        [Parameter()]
+        [switch] $NoDialog,
+
+        [Parameter()]
+        [switch] $NoRestart
     )
 
     $Scripts = @(
@@ -90,12 +102,16 @@ function Open-DebloatScript {
     )
 
     If ($Mode -eq 'CLI') {
-        Open-PowerShellFilesCollection -RelativeLocation "src\scripts" -Scripts $Scripts -DoneTitle $DoneTitle -DoneMessage $DoneMessage -OpenFromGUI $false
+        Open-PowerShellFilesCollection -RelativeLocation "src\scripts" -Scripts $Scripts -DoneTitle $DoneTitle -DoneMessage $DoneMessage -OpenFromGUI $false  -NoDialog:$NoDialog
     } ElseIf ($Mode -eq 'GUI') {
-        Open-PowerShellFilesCollection -RelativeLocation "src\scripts" -Scripts $Scripts -DoneTitle $DoneTitle -DoneMessage $DoneMessage
+        Open-PowerShellFilesCollection -RelativeLocation "src\scripts" -Scripts $Scripts -DoneTitle $DoneTitle -DoneMessage $DoneMessage  -NoDialog:$NoDialog
     }
 
-    $Script:NeedRestart = $true
+    if ($NoRestart) {
+        $Script:NeedRestart = $false
+    } else {
+        $Script:NeedRestart = $true
+    }
 }
 
 function Request-AdminPrivilege() {
